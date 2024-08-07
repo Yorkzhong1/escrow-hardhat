@@ -2,6 +2,7 @@ import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
 import deploy from './deploy';
 import Escrow from './Escrow';
+import deployExisting from './deployConctract'
 
 const provider = new ethers.providers.Web3Provider(window.ethereum);
 
@@ -26,11 +27,16 @@ function App() {
     getAccounts();
   }, [account]);
 
+  //useEffect从existing Contract中找到所有合约，并且setEscrows  
+
   async function newContract() {
     const beneficiary = document.getElementById('beneficiary').value;
     const arbiter = document.getElementById('arbiter').value;
-    const value = ethers.BigNumber.from(document.getElementById('wei').value);
+    const ethValue = ethers.BigNumber.from(document.getElementById('wei').value);
+    const value = ethers.utils.parseEther(ethValue.toString());
     const escrowContract = await deploy(signer, arbiter, beneficiary, value);
+    
+//调用existingContraxct的addEscrow
 
 
     const escrow = {
@@ -47,6 +53,7 @@ function App() {
         });
 
         await approve(escrowContract, signer);
+        //并且在existing Contract approve该合约
       },
     };
 
@@ -68,7 +75,7 @@ function App() {
         </label>
 
         <label>
-          Deposit Amount (in Wei)
+          Deposit Amount (in ETH)
           <input type="text" id="wei" />
         </label>
 
@@ -77,12 +84,23 @@ function App() {
           id="deploy"
           onClick={(e) => {
             e.preventDefault();
-
             newContract();
           }}
         >
           Deploy
         </div>
+        <div
+          className="button"
+          id="deployExisting Contract"
+          onClick={(e) => {
+            e.preventDefault();
+
+            deployExisting(signer);
+          }}
+        >
+          Deploy Existing Contract
+        </div>
+        
       </div>
 
       <div className="existing-contracts">
@@ -94,6 +112,7 @@ function App() {
           })}
         </div>
       </div>
+     
     </>
   );
 }
